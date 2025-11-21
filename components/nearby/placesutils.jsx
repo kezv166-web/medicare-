@@ -1,6 +1,6 @@
 // Utilities for Google Places API integration and fallback logic
 
-import { getMockDataForLocation } from './mockData';
+import { getMockDataForLocation } from './mockdata';
 
 // Check if we should use mock data
 const shouldUseMockData = () => {
@@ -175,4 +175,40 @@ export const mergePlacesWithReports = (places) => {
             out_of_stock: 0,
             open: 0,
             closed: 0,
- 
+            last_reported: null
+        }
+    }));
+};
+
+// Get user location
+export const getUserLocation = () => {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                resolve({
+                    lat: position.coords.latitude,
+                    lon: position.coords.longitude
+                });
+            },
+            (error) => {
+                reject(error);
+            }
+        );
+    });
+};
+
+// Geocode address to coordinates
+export const geocodeAddress = async (address) => {
+    // In production, use Google Geocoding API
+    // For now, return a default location
+    console.warn('Geocoding not implemented, using default location');
+    return {
+        lat: 28.6139,
+        lon: 77.2090
+    };
+};
