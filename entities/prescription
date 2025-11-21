@@ -1,0 +1,26 @@
+{
+  "name": "Prescription",
+  "type": "object",
+  "properties": {
+    "image_url": {
+      "type": "string",
+      "description": "URL of the prescription image"
+    },
+    "doctor_name": {
+      "type": "string",
+      "description": "Name of the prescribing doctor"
+    },
+    "date_prescribed": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of prescription"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "image_url"
+  ]
+}

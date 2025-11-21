@@ -1,0 +1,33 @@
+{
+  "name": "Medicine",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Medicine name"
+    },
+    "dosage": {
+      "type": "string",
+      "description": "Dosage information"
+    },
+    "time_interval": {
+      "type": "string",
+      "description": "How often to take (e.g., Every 8 hours, Twice daily)"
+    },
+    "next_dose_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next scheduled dose time"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this medicine is currently active"
+    }
+  },
+  "required": [
+    "name",
+    "dosage",
+    "time_interval"
+  ]
+}

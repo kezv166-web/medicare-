@@ -1,0 +1,27 @@
+{
+  "name": "MedicineInfo",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Medicine name"
+    },
+    "generic_name": {
+      "type": "string",
+      "description": "Generic/chemical name"
+    },
+    "uses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What this medicine is used for"
+    },
+    "side_effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Common side effects"
+    },
+ 

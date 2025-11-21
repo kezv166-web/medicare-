@@ -1,0 +1,178 @@
+// Utilities for Google Places API integration and fallback logic
+
+import { getMockDataForLocation } from './mockData';
+
+// Check if we should use mock data
+const shouldUseMockData = () => {
+    // Check if PLACES_API_KEY is available (would be in env vars)
+    const hasApiKey = false; // Set to true when API key is configured
+    const forceMock = localStorage.getItem('USE_MOCK_PLACES') === 'true';
+    return forceMock || !hasApiKey;
+};
+
+// Calculate distance between two coordinates (Haversine formula)
+export const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000; // Earth's radius in meters
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in meters
+};
+
+// Transform Google Places response to our unified format
+const transformGooglePlace = (place, userLat, userLon) => {
+    const distance = calculateDistance(
+        userLat,
+        userLon,
+        place.geometry.location.lat,
+        place.geometry.location.lng
+    );
+
+    return {
+        place_id: place.place_id,
+        name: place.name,
+        address: place.vicinity || place.formatted_address || '',
+        lat: place.geometry.location.lat,
+        lon: place.geometry.location.lng,
+        distance_m: Math.round(distance),
+        phone: place.formatted_phone_number || null,
+        open_now: place.opening_hours?.open_now ?? null,
+        types: place.types || [],
+        map_url: `https://maps.google.com/?q=${place.geometry.location.lat},${place.geometry.location.lng}`,
+        rating: place.rating || null,
+        user_ratings_total: place.user_ratings_total || null
+    };
+};
+
+// Fetch nearby places (with Google Places API or mock data)
+export const fetchNearbyPlaces = async ({ lat, lon, radius, type, searchQuery }) => {
+    try {
+        // Use mock data if configured
+        if (shouldUseMockData()) {
+            console.log('Using mock data for places');
+            const mockData = getMockDataForLocation(lat, lon);
+            
+            // Add distance to mock data
+            const results = mockData.map(place => ({
+                ...place,
+                distance_m: calculateDistance(lat, lon, place.lat, place.lon)
+            }));
+
+            return {
+                source: 'mock',
+                fetchedAt: new Date().toISOString(),
+                results: results
+            };
+        }
+
+        // In production, this would call Google Places API
+        // For now, fallback to mock data
+        console.warn('Google Places API not configured, using mock data');
+        const mockData = getMockDataForLocation(lat, lon);
+        
+        const results = mockData.map(place => ({
+            ...place,
+            distance_m: calculateDistance(lat, lon, place.lat, place.lon)
+        }));
+
+        return {
+            source: 'mock',
+            fetchedAt: new Date().toISOString(),
+            results: results
+        };
+
+        /* 
+        // Uncomment when Google Places API is configured:
+        
+        const placeType = type === 'all' ? 'hospital|doctor|pharmacy' : type;
+        const response = await fetch(
+            `https://maps.googleapis.com/maps/api/place/nearbysearch/json?` +
+            `location=${lat},${lon}&radius=${radius}&type=${placeType}&key=${PLACES_API_KEY}`
+        );
+        
+        if (!response.ok) throw new Error('API request failed');
+        
+        const data = await response.json();
+        
+        if (data.status !== 'OK') {
+            throw new Error(`API returned status: ${data.status}`);
+        }
+        
+        return {
+            source: 'google',
+            fetchedAt: new Date().toISOString(),
+            results: data.results.map(place => transformGooglePlace(place, lat, lon))
+        };
+        */
+
+    } catch (error) {
+        console.error('Error fetching places:', error);
+        // Fallback to mock data on error
+        const mockData = getMockDataForLocation(lat, lon);
+        const results = mockData.map(place => ({
+            ...place,
+            distance_m: calculateDistance(lat, lon, place.lat, place.lon)
+        }));
+
+        return {
+            source: 'mock',
+            fetchedAt: new Date().toISOString(),
+            results: results,
+            error: error.message
+        };
+    }
+};
+
+// Get user reports from localStorage
+export const getUserReports = () => {
+    try {
+        const reports = localStorage.getItem('place_reports');
+        return reports ? JSON.parse(reports) : {};
+    } catch (error) {
+        console.error('Error reading user reports:', error);
+        return {};
+    }
+};
+
+// Save user report to localStorage
+export const saveUserReport = (placeId, status) => {
+    try {
+        const reports = getUserReports();
+        
+        if (!reports[placeId]) {
+            reports[placeId] = {
+                in_stock: 0,
+                out_of_stock: 0,
+                open: 0,
+                closed: 0,
+                last_reported: null
+            };
+        }
+
+        // Increment the relevant counter
+        reports[placeId][status] = (reports[placeId][status] || 0) + 1;
+        reports[placeId].last_reported = new Date().toISOString();
+
+        localStorage.setItem('place_reports', JSON.stringify(reports));
+        return reports[placeId];
+    } catch (error) {
+        console.error('Error saving user report:', error);
+        return null;
+    }
+};
+
+// Merge user reports with places data
+export const mergePlacesWithReports = (places) => {
+    const reports = getUserReports();
+    return places.map(place => ({
+        ...place,
+        user_reports: reports[place.place_id] || {
+            in_stock: 0,
+            out_of_stock: 0,
+            open: 0,
+            closed: 0,
+ 

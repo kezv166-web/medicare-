@@ -1,0 +1,27 @@
+{
+  "name": "Disease",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Disease name"
+    },
+    "symptoms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Common symptoms"
+    },
+    "precautions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Recommended precautions"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "mild",
+ 

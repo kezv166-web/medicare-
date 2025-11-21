@@ -1,0 +1,31 @@
+{
+  "name": "FoodRecommendation",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Food item name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "safe",
+        "limited",
+        "avoid"
+      ],
+      "description": "Safety status based on health conditions"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why this recommendation is given"
+    },
+    "health_condition": {
+      "type": "string",
+      "description": "Related health condition"
+    }
+  },
+  "required": [
+    "name",
+    "status"
+  ]
+}

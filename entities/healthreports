@@ -1,0 +1,27 @@
+{
+  "name": "HealthReport",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Report name/title"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL of the report file"
+    },
+    "report_type": {
+      "type": "string",
+      "description": "Type of report (Blood test, X-Ray, etc.)"
+    },
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the report"
+    }
+  },
+  "required": [
+    "name",
+    "file_url"
+  ]
+}
